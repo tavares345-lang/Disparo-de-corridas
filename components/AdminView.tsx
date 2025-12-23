@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import RideCard from './RideCard';
 import { RideStatus, Driver } from '../types';
-import { PlusCircleIcon, UsersIcon, XCircleIcon, PencilIcon, AlarmClockIcon, LockIcon } from './Icons';
+import { PlusCircleIcon, UsersIcon, XCircleIcon, PencilIcon, AlarmClockIcon, LockIcon, RocketIcon, CheckCircleIcon } from './Icons';
 
 interface EditDriverModalProps {
     driver: Driver;
@@ -15,24 +15,31 @@ const EditDriverModal: React.FC<EditDriverModalProps> = ({ driver, onClose, onSa
     const [name, setName] = useState(driver.name);
     const [unitNumber, setUnitNumber] = useState(driver.unitNumber);
     const [vehicleModel, setVehicleModel] = useState(driver.vehicleModel);
+    const [password, setPassword] = useState(driver.password || '');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ ...driver, name, unitNumber, vehicleModel });
+        onSave({ ...driver, name, unitNumber, vehicleModel, password });
     };
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-slate-800 rounded-lg shadow-2xl p-6 w-full max-w-md border border-slate-700">
-                <h2 className="text-2xl font-bold mb-4">Editar Motorista</h2>
+                <h2 className="text-2xl font-bold mb-4 text-slate-100">Editar Unidade</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Nome</label>
+                        <label className="block text-sm font-medium text-slate-300 mb-1">Nome do Motorista</label>
                         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-1">Unidade</label>
-                        <input type="text" value={unitNumber} onChange={(e) => setUnitNumber(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Número Unidade</label>
+                          <input type="text" value={unitNumber} onChange={(e) => setUnitNumber(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-medium text-slate-300 mb-1">Senha Unidade</label>
+                          <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                      </div>
                     </div>
                      <div>
                         <label className="block text-sm font-medium text-slate-300 mb-1">Modelo do Veículo</label>
@@ -64,6 +71,7 @@ const AdminView: React.FC = () => {
   const [newDriverName, setNewDriverName] = useState('');
   const [newDriverUnit, setNewDriverUnit] = useState('');
   const [newDriverVehicle, setNewDriverVehicle] = useState('');
+  const [newDriverPassword, setNewDriverPassword] = useState('');
 
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
 
@@ -125,11 +133,17 @@ const AdminView: React.FC = () => {
     if(newDriverName && newDriverUnit && newDriverVehicle) {
         dispatch({
             type: 'ADD_DRIVER',
-            payload: { name: newDriverName, unitNumber: newDriverUnit, vehicleModel: newDriverVehicle }
+            payload: { 
+              name: newDriverName, 
+              unitNumber: newDriverUnit, 
+              vehicleModel: newDriverVehicle, 
+              password: newDriverPassword || '123' 
+            }
         });
         setNewDriverName('');
         setNewDriverUnit('');
         setNewDriverVehicle('');
+        setNewDriverPassword('');
     }
   };
 
@@ -151,11 +165,11 @@ const AdminView: React.FC = () => {
       return;
     }
     if (newPassword.length < 4) {
-      setPasswordStatus({ type: 'error', message: 'A senha deve ter pelo menos 4 caracteres.' });
+      setPasswordStatus({ type: 'error', message: 'A senha master deve ter pelo menos 4 caracteres.' });
       return;
     }
     dispatch({ type: 'CHANGE_ADMIN_PASSWORD', payload: { newPassword } });
-    setPasswordStatus({ type: 'success', message: 'Senha alterada com sucesso!' });
+    setPasswordStatus({ type: 'success', message: 'Senha master alterada!' });
     setNewPassword('');
     setConfirmPassword('');
     setTimeout(() => setPasswordStatus(null), 3000);
@@ -175,7 +189,7 @@ const AdminView: React.FC = () => {
       )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 flex flex-col gap-6">
-          <div className="bg-slate-800 rounded-lg shadow-lg p-6">
+          <div className="bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-700">
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
               <PlusCircleIcon className="w-7 h-7 text-amber-400" />
               Nova Corrida
@@ -220,35 +234,36 @@ const AdminView: React.FC = () => {
             </form>
           </div>
           
-          <div className="bg-slate-800 rounded-lg shadow-lg p-6">
+          <div className="bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-700">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <UsersIcon className="w-7 h-7 text-amber-400" />
-                  Gerenciar Motoristas
+                  Gestão Unidades
               </h2>
               <form onSubmit={handleAddDriver} className="space-y-4 mb-6">
                   <div className="space-y-3">
                       <input type="text" value={newDriverName} onChange={(e) => setNewDriverName(e.target.value)} placeholder="Nome do Motorista" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
                       <div className="grid grid-cols-2 gap-3">
-                          <input type="text" value={newDriverUnit} onChange={(e) => setNewDriverUnit(e.target.value)} placeholder="Unidade" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
-                          <input type="text" value={newDriverVehicle} onChange={(e) => setNewDriverVehicle(e.target.value)} placeholder="Veículo" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                          <input type="text" value={newDriverUnit} onChange={(e) => setNewDriverUnit(e.target.value)} placeholder="Nº Unidade" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                          <input type="text" value={newDriverPassword} onChange={(e) => setNewDriverPassword(e.target.value)} placeholder="Senha (ex: 123)" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
                       </div>
+                      <input type="text" value={newDriverVehicle} onChange={(e) => setNewDriverVehicle(e.target.value)} placeholder="Veículo (ex: Spin Prata)" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
                   </div>
                   <button type="submit" className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                      Cadastrar Motorista
+                      Cadastrar Nova Unidade
                   </button>
               </form>
 
-              <h3 className="text-lg font-semibold mb-3 text-slate-300">Fila de Motoristas ({state.drivers.length})</h3>
+              <h3 className="text-lg font-semibold mb-3 text-slate-300">Fila Ativa ({state.drivers.length})</h3>
               <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                   {state.drivers.sort((a,b) => a.position - b.position).map(driver => (
-                      <div key={driver.id} className="flex items-center justify-between bg-slate-700/50 p-3 rounded-md">
+                      <div key={driver.id} className="flex items-center justify-between bg-slate-700/50 p-3 rounded-md border border-slate-600/50">
                           <div className="flex items-center gap-3">
                               <span className="font-bold text-lg text-amber-400 w-6 text-center">{driver.position}</span>
                               <div className="flex items-center gap-2">
                                 <span className={`w-2.5 h-2.5 rounded-full ${driver.isAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`} title={driver.isAvailable ? 'Disponível' : 'Indisponível'}></span>
                                 <div>
                                     <p className="font-semibold text-slate-100">{driver.name}</p>
-                                    <p className="text-xs text-slate-400">Un. {driver.unitNumber} - {driver.vehicleModel}</p>
+                                    <p className="text-xs text-slate-400">Un. {driver.unitNumber} - Senha: {driver.password}</p>
                                 </div>
                               </div>
                           </div>
@@ -265,18 +280,18 @@ const AdminView: React.FC = () => {
               </div>
           </div>
 
-          <div className="bg-slate-800 rounded-lg shadow-lg p-6">
+          <div className="bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-700">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-100">
                   <LockIcon className="w-6 h-6 text-amber-400" />
-                  Configurações do Sistema
+                  Configurações Master
               </h2>
               <form onSubmit={handleChangePassword} className="space-y-3">
-                  <p className="text-sm text-slate-400 mb-2">Alterar senha administrativa:</p>
+                  <p className="text-sm text-slate-400 mb-2">Alterar senha master do sistema:</p>
                   <input 
                     type="password" 
                     value={newPassword} 
                     onChange={(e) => setNewPassword(e.target.value)} 
-                    placeholder="Nova senha" 
+                    placeholder="Nova senha master" 
                     className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" 
                     required 
                   />
@@ -284,7 +299,7 @@ const AdminView: React.FC = () => {
                     type="password" 
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)} 
-                    placeholder="Confirmar nova senha" 
+                    placeholder="Confirmar senha master" 
                     className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" 
                     required 
                   />
@@ -294,50 +309,68 @@ const AdminView: React.FC = () => {
                     </p>
                   )}
                   <button type="submit" className="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                      Atualizar Senha
+                      Atualizar Senha Master
                   </button>
               </form>
           </div>
         </div>
         
         <div className="lg:col-span-2 space-y-6">
-          <div>
-            <h3 className="text-xl font-semibold mb-3 text-purple-300 flex items-center gap-2">
-                <AlarmClockIcon className="w-5 h-5"/>
-                Agendadas ({ridesByStatus(RideStatus.SCHEDULED).length})
-            </h3>
-            <div className="space-y-4">
-              {ridesByStatus(RideStatus.SCHEDULED).map(ride => (
-                <RideCard key={ride.id} ride={ride} />
-              ))}
-              {ridesByStatus(RideStatus.SCHEDULED).length === 0 && <p className="text-slate-500">Nenhuma corrida agendada.</p>}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-3 text-slate-300">Aguardando Motorista ({ridesByStatus(RideStatus.WAITING).length})</h3>
-            <div className="space-y-4">
-              {ridesByStatus(RideStatus.WAITING).map(ride => (
-                <RideCard key={ride.id} ride={ride} />
-              ))}
-              {ridesByStatus(RideStatus.WAITING).length === 0 && <p className="text-slate-500">Nenhuma corrida aguardando.</p>}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-3 text-sky-400">Em Atendimento ({ridesByStatus(RideStatus.IN_PROGRESS).length})</h3>
-            <div className="space-y-4">
-              {ridesByStatus(RideStatus.IN_PROGRESS).map(ride => (
-                <RideCard key={ride.id} ride={ride} />
-              ))}
-              {ridesByStatus(RideStatus.IN_PROGRESS).length === 0 && <p className="text-slate-500">Nenhuma corrida em atendimento.</p>}
-            </div>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-3 text-emerald-400">Finalizadas ({ridesByStatus(RideStatus.COMPLETED).length})</h3>
-            <div className="space-y-4">
-              {ridesByStatus(RideStatus.COMPLETED).map(ride => (
-                <RideCard key={ride.id} ride={ride} />
-              ))}
-              {ridesByStatus(RideStatus.COMPLETED).length === 0 && <p className="text-slate-500">Nenhuma corrida finalizada.</p>}
+          <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+            <h2 className="text-2xl font-bold mb-6 text-white border-b border-slate-700 pb-2">Controle Geral de Corridas</h2>
+            
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-purple-300 flex items-center gap-2">
+                    <AlarmClockIcon className="w-5 h-5"/>
+                    Agendadas para Disparo ({ridesByStatus(RideStatus.SCHEDULED).length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ridesByStatus(RideStatus.SCHEDULED).map(ride => (
+                    <RideCard key={ride.id} ride={ride} />
+                  ))}
+                  {ridesByStatus(RideStatus.SCHEDULED).length === 0 && <p className="text-slate-500 italic">Nenhuma corrida aguardando horário de disparo.</p>}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-amber-400 flex items-center gap-2">
+                    <UsersIcon className="w-5 h-5"/>
+                    Disparadas / Aguardando Aceite ({ridesByStatus(RideStatus.WAITING).length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ridesByStatus(RideStatus.WAITING).map(ride => (
+                    <RideCard key={ride.id} ride={ride} />
+                  ))}
+                  {ridesByStatus(RideStatus.WAITING).length === 0 && <p className="text-slate-500 italic">Nenhuma corrida disparada no momento.</p>}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-sky-400 flex items-center gap-2">
+                    <RocketIcon className="w-5 h-5"/>
+                    Em Atendimento Real ({ridesByStatus(RideStatus.IN_PROGRESS).length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ridesByStatus(RideStatus.IN_PROGRESS).map(ride => (
+                    <RideCard key={ride.id} ride={ride} />
+                  ))}
+                  {ridesByStatus(RideStatus.IN_PROGRESS).length === 0 && <p className="text-slate-500 italic">Nenhuma corrida em atendimento.</p>}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-emerald-400 flex items-center gap-2">
+                    <CheckCircleIcon className="w-5 h-5"/>
+                    Histórico de Finalizadas ({ridesByStatus(RideStatus.COMPLETED).length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ridesByStatus(RideStatus.COMPLETED).slice(0, 10).map(ride => (
+                    <RideCard key={ride.id} ride={ride} />
+                  ))}
+                  {ridesByStatus(RideStatus.COMPLETED).length === 0 && <p className="text-slate-500 italic">Histórico vazio.</p>}
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -13,8 +13,8 @@ type Action =
   | { type: 'ACCEPT_RIDE'; payload: { rideId: string; driverId: number } }
   | { type: 'DECLINE_RIDE'; payload: { rideId: string; driverId: number } }
   | { type: 'COMPLETE_RIDE'; payload: { rideId: string } }
-  | { type: 'ADD_DRIVER'; payload: { name: string; unitNumber: string; vehicleModel: string } }
-  | { type: 'EDIT_DRIVER'; payload: { id: number; name: string; unitNumber: string; vehicleModel: string } }
+  | { type: 'ADD_DRIVER'; payload: { name: string; unitNumber: string; vehicleModel: string; password?: string } }
+  | { type: 'EDIT_DRIVER'; payload: { id: number; name: string; unitNumber: string; vehicleModel: string; password?: string } }
   | { type: 'REMOVE_DRIVER'; payload: { driverId: number } }
   | { type: 'TOGGLE_DRIVER_AVAILABILITY'; payload: { driverId: number } }
   | { type: 'DISPATCH_SCHEDULED_RIDE'; payload: { rideId: string } }
@@ -22,11 +22,11 @@ type Action =
 
 const initialState: AppState = {
   drivers: [
-    { id: 1, name: 'Carlos Silva', unitNumber: '101', vehicleModel: 'Sedan (Spin)', position: 1, isAvailable: true },
-    { id: 2, name: 'Mariana Costa', unitNumber: '202', vehicleModel: 'SUV (Duster)', position: 2, isAvailable: true },
-    { id: 3, name: 'Roberto Almeida', unitNumber: '303', vehicleModel: 'Sedan (Cronos)', position: 3, isAvailable: true },
-    { id: 4, name: 'Juliana Pereira', unitNumber: '404', vehicleModel: 'Minivan', position: 4, isAvailable: true },
-    { id: 5, name: 'Fernando Lima', unitNumber: '505', vehicleModel: 'Sedan (Virtus)', position: 5, isAvailable: true },
+    { id: 1, name: 'Carlos Silva', unitNumber: '101', vehicleModel: 'Sedan (Spin)', position: 1, isAvailable: true, password: '123' },
+    { id: 2, name: 'Mariana Costa', unitNumber: '202', vehicleModel: 'SUV (Duster)', position: 2, isAvailable: true, password: '123' },
+    { id: 3, name: 'Roberto Almeida', unitNumber: '303', vehicleModel: 'Sedan (Cronos)', position: 3, isAvailable: true, password: '123' },
+    { id: 4, name: 'Juliana Pereira', unitNumber: '404', vehicleModel: 'Minivan', position: 4, isAvailable: true, password: '123' },
+    { id: 5, name: 'Fernando Lima', unitNumber: '505', vehicleModel: 'Sedan (Virtus)', position: 5, isAvailable: true, password: '123' },
   ],
   rides: [],
   adminPassword: 'Admin',
@@ -160,7 +160,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
     }
     case 'ADD_DRIVER': {
-      const { name, unitNumber, vehicleModel } = action.payload;
+      const { name, unitNumber, vehicleModel, password } = action.payload;
       const newId = state.drivers.length > 0 ? Math.max(...state.drivers.map(d => d.id)) + 1 : 1;
       const newPosition = state.drivers.length + 1;
       const newDriver: Driver = {
@@ -170,6 +170,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
         vehicleModel,
         position: newPosition,
         isAvailable: true,
+        password: password || '123',
       };
       return {
         ...state,
@@ -292,7 +293,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     try {
       const storedState = localStorage.getItem(COOPTAXI_STATE_KEY);
       const parsedState = storedState ? JSON.parse(storedState) : initial;
-      // Merge stored state with initial to handle new fields like adminPassword if they are missing
       return { ...initial, ...parsedState };
     } catch (error) {
       console.error("Error reading from localStorage", error);

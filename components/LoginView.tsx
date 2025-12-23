@@ -10,6 +10,7 @@ interface LoginViewProps {
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
   const { state } = useAppState();
   const [unitNumber, setUnitNumber] = useState('');
+  const [driverPassword, setDriverPassword] = useState('');
   const [driverError, setDriverError] = useState('');
 
   const [adminPassword, setAdminPassword] = useState('');
@@ -19,22 +20,25 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
   const handleDriverLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!unitNumber) {
-      setDriverError('Por favor, insira o número da unidade.');
+    if (!unitNumber || !driverPassword) {
+      setDriverError('Por favor, insira unidade e senha.');
       return;
     }
 
     const driver = state.drivers.find(d => d.unitNumber === unitNumber.trim());
     if (driver) {
-      onLogin(driver.id);
+      if (driver.password === driverPassword) {
+        onLogin(driver.id);
+      } else {
+        setDriverError('Senha incorreta para esta unidade.');
+      }
     } else {
-      setDriverError('Unidade não encontrada. Verifique o número e tente novamente.');
+      setDriverError('Unidade não encontrada. Verifique o número.');
     }
   };
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Use the password from the global state
     if (adminPassword === state.adminPassword) {
         onLogin('admin');
     } else {
@@ -50,16 +54,16 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           <h1 className="text-4xl font-bold text-white tracking-tight mt-4">
             Cootramo <span className="text-amber-400">Digital</span>
           </h1>
-          <p className="text-slate-400 mt-2">Seu sistema de gerenciamento de corridas.</p>
+          <p className="text-slate-400 mt-2">Gestão inteligente de corridas.</p>
         </div>
         
         <div className="bg-slate-800 rounded-lg shadow-lg p-8">
           {view === 'driver' ? (
             <>
-              <form onSubmit={handleDriverLogin}>
-                <h2 className="text-2xl font-bold text-center text-white mb-6">Acesso do Motorista</h2>
-                <div className="mb-4">
-                  <label htmlFor="unitNumber" className="block text-sm font-medium text-slate-300 mb-2">
+              <form onSubmit={handleDriverLogin} className="space-y-4">
+                <h2 className="text-2xl font-bold text-center text-white mb-6">Acesso Unidade</h2>
+                <div>
+                  <label htmlFor="unitNumber" className="block text-sm font-medium text-slate-300 mb-1">
                     Número da Unidade
                   </label>
                   <input
@@ -70,19 +74,35 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                       setUnitNumber(e.target.value);
                       setDriverError('');
                     }}
-                    placeholder="Digite sua unidade"
+                    placeholder="Ex: 101"
                     className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg"
                     required
-                    autoFocus
                   />
                 </div>
-                {driverError && <p className="text-rose-400 text-sm mb-4 text-center">{driverError}</p>}
+                <div>
+                  <label htmlFor="driverPassword" className="block text-sm font-medium text-slate-300 mb-1">
+                    Senha da Unidade
+                  </label>
+                  <input
+                    id="driverPassword"
+                    type="password"
+                    value={driverPassword}
+                    onChange={(e) => {
+                      setDriverPassword(e.target.value);
+                      setDriverError('');
+                    }}
+                    placeholder="••••••"
+                    className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg"
+                    required
+                  />
+                </div>
+                {driverError && <p className="text-rose-400 text-sm mb-2 text-center">{driverError}</p>}
                 <button
                   type="submit"
                   className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2"
                 >
                   <UserIcon className="w-5 h-5" />
-                  Entrar
+                  Acessar Painel
                 </button>
               </form>
 
@@ -99,15 +119,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 onClick={() => setView('admin')}
                 className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-md transition duration-300"
               >
-                Acessar como Administrador
+                Acesso Administrativo
               </button>
             </>
           ) : (
             <form onSubmit={handleAdminLogin}>
-                <h2 className="text-2xl font-bold text-center text-white mb-6">Acesso do Administrador</h2>
+                <h2 className="text-2xl font-bold text-center text-white mb-6">Administração</h2>
                  <div className="mb-4">
                   <label htmlFor="adminPassword" className="block text-sm font-medium text-slate-300 mb-2">
-                    Senha
+                    Senha Master
                   </label>
                   <input
                     id="adminPassword"
@@ -129,7 +149,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                   className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 mb-4"
                 >
                   <LockIcon className="w-5 h-5" />
-                  Entrar no Painel
+                  Entrar
                 </button>
                  <button
                     type="button"
@@ -140,7 +160,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     }}
                     className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
                 >
-                    Voltar
+                    Voltar para Motorista
                 </button>
             </form>
           )}

@@ -1,3 +1,4 @@
+
 export enum RideStatus {
   SCHEDULED = 'Agendada',
   WAITING = 'Aguardando',
@@ -12,6 +13,7 @@ export interface Driver {
   vehicleModel: string;
   position: number;
   isAvailable: boolean;
+  password?: string;
 }
 
 export interface Ride {
