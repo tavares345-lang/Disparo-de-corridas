@@ -1,0 +1,5 @@
+{
+  "name": "Cootramo - Envio de corridas",
+  "description": "An application for taxi cooperatives to manage and dispatch rides to drivers based on a queue system. Admins can post jobs, and drivers receive them on their devices in order of their position.",
+  "requestFramePermissions": []
+}
