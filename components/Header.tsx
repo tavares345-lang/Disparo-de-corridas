@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Driver } from '../types';
-import { CarIcon, UserIcon, LogOutIcon } from './Icons';
+import { CarIcon, UserIcon, LogOutIcon, UsersIcon } from './Icons';
 
 interface HeaderProps {
   currentUser: string | number;
@@ -11,8 +11,11 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ currentUser, loggedInDriver, onLogout }) => {
   const getDisplayName = () => {
+    if (currentUser === 'superadmin') {
+      return 'Administrador Geral';
+    }
     if (currentUser === 'admin') {
-      return 'Painel de Administração';
+      return 'Painel Operacional';
     }
     if (loggedInDriver) {
       return `Olá, ${loggedInDriver.name}`;
@@ -21,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ currentUser, loggedInDriver, onLogout }
   };
 
   return (
-    <header className="bg-slate-800/50 backdrop-blur-sm sticky top-0 z-10 shadow-md">
+    <header className="bg-slate-800/50 backdrop-blur-sm sticky top-0 z-10 shadow-md border-b border-slate-700/50">
       <div className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <CarIcon className="w-8 h-8 text-amber-400" />
@@ -31,9 +34,15 @@ const Header: React.FC<HeaderProps> = ({ currentUser, loggedInDriver, onLogout }
         </div>
         <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-right">
-                <UserIcon className="w-5 h-5 text-slate-400 hidden sm:block" />
+                {currentUser === 'superadmin' ? (
+                  <UsersIcon className="w-5 h-5 text-sky-400 hidden sm:block" />
+                ) : (
+                  <UserIcon className="w-5 h-5 text-slate-400 hidden sm:block" />
+                )}
                 <div>
-                  <span className="text-slate-100 font-semibold">{getDisplayName()}</span>
+                  <span className={`font-semibold ${currentUser === 'superadmin' ? 'text-sky-400' : 'text-slate-100'}`}>
+                    {getDisplayName()}
+                  </span>
                   {loggedInDriver && <span className="text-xs text-slate-400 block sm:inline sm:ml-2">(Un. {loggedInDriver.unitNumber})</span>}
                 </div>
             </div>

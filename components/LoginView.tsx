@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppState } from '../hooks/useAppState';
-import { CarIcon, UserIcon, LockIcon } from './Icons';
+import { CarIcon, UserIcon, LockIcon, UsersIcon } from './Icons';
 
 interface LoginViewProps {
   onLogin: (user: string | number) => void;
@@ -16,7 +16,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
   const [adminPassword, setAdminPassword] = useState('');
   const [adminError, setAdminError] = useState('');
 
-  const [view, setView] = useState<'driver' | 'admin'>('driver');
+  const [view, setView] = useState<'driver' | 'admin' | 'super'>('driver');
 
   const handleDriverLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +39,18 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminPassword === state.adminPassword) {
-        onLogin('admin');
+    if (view === 'admin') {
+        if (adminPassword === state.adminPassword) {
+            onLogin('admin');
+        } else {
+            setAdminError('Senha incorreta. Tente novamente.');
+        }
     } else {
-        setAdminError('Senha incorreta. Tente novamente.');
+        if (adminPassword === state.superAdminPassword) {
+            onLogin('superadmin');
+        } else {
+            setAdminError('Senha do Administrador Geral incorreta.');
+        }
     }
   };
 
@@ -111,23 +119,37 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                   <div className="w-full border-t border-slate-600" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-slate-800 px-2 text-slate-500">ou</span>
+                  <span className="bg-slate-800 px-2 text-slate-500">Administração</span>
                 </div>
               </div>
               
-              <button
-                onClick={() => setView('admin')}
-                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-md transition duration-300"
-              >
-                Acesso Administrativo
-              </button>
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                    onClick={() => setView('admin')}
+                    className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-md transition duration-300"
+                >
+                    Operador Administrativo
+                </button>
+                <button
+                    onClick={() => setView('super')}
+                    className="w-full bg-slate-700 hover:bg-sky-600/20 text-sky-400 font-bold py-3 px-4 rounded-md border border-sky-600/30 transition duration-300 flex items-center justify-center gap-2"
+                >
+                    <UsersIcon className="w-5 h-5" />
+                    Administrador Geral
+                </button>
+              </div>
             </>
           ) : (
             <form onSubmit={handleAdminLogin}>
-                <h2 className="text-2xl font-bold text-center text-white mb-6">Administração</h2>
+                <h2 className="text-2xl font-bold text-center text-white mb-2">
+                    {view === 'admin' ? 'Administração' : 'Administrador Geral'}
+                </h2>
+                <p className="text-center text-slate-400 text-sm mb-6">
+                    {view === 'admin' ? 'Acesso operacional' : 'Controle total do sistema'}
+                </p>
                  <div className="mb-4">
                   <label htmlFor="adminPassword" className="block text-sm font-medium text-slate-300 mb-2">
-                    Senha Master
+                    Senha de Acesso
                   </label>
                   <input
                     id="adminPassword"
@@ -146,10 +168,10 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 {adminError && <p className="text-rose-400 text-sm mb-4 text-center">{adminError}</p>}
                 <button
                   type="submit"
-                  className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 mb-4"
+                  className={`w-full ${view === 'admin' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-sky-500 hover:bg-sky-600'} text-white font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 mb-4 shadow-lg`}
                 >
                   <LockIcon className="w-5 h-5" />
-                  Entrar
+                  Entrar no Painel
                 </button>
                  <button
                     type="button"
@@ -160,7 +182,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                     }}
                     className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
                 >
-                    Voltar para Motorista
+                    Voltar
                 </button>
             </form>
           )}
