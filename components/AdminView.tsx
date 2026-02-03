@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppState } from '../hooks/useAppState';
 import RideCard from './RideCard';
 import { RideStatus, Driver } from '../types';
-import { PlusCircleIcon, UsersIcon, XCircleIcon, PencilIcon, AlarmClockIcon, LockIcon, RocketIcon, CheckCircleIcon, UserIcon, CarIcon, MegaphoneIcon, BellIcon } from './Icons';
+import { PlusCircleIcon, UsersIcon, XCircleIcon, PencilIcon, AlarmClockIcon, LockIcon, RocketIcon, CheckCircleIcon, UserIcon, CarIcon, MegaphoneIcon, BellIcon, TrophyIcon } from './Icons';
 
 interface EditDriverModalProps {
     driver: Driver;
@@ -87,6 +87,8 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStatus, setPasswordStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+  const [showBackup, setShowBackup] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -182,7 +184,6 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
   const ridesByStatus = (status: RideStatus) =>
     state.rides.filter(ride => ride.status === status);
 
-  // CRITICAL: Garantindo que esta constante filtre apenas quem está com turno iniciado
   const availableDrivers = state.drivers
     .filter(d => d.isAvailable)
     .sort((a, b) => a.position - b.position);
@@ -200,23 +201,23 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
         <div className="lg:col-span-1 flex flex-col gap-6">
           {/* Nova Corrida */}
           <div className="bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-700">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2 text-white">
               <PlusCircleIcon className="w-7 h-7 text-amber-400" />
               Publicar Chamado
             </h2>
             <form onSubmit={handleSubmitRide} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Local de Embarque</label>
-                <input type="text" value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Rua, Número, Bairro" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                <input type="text" value={pickup} onChange={(e) => setPickup(e.target.value)} placeholder="Rua, Número, Bairro" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500 text-white" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Destino Final</label>
-                <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Rua, Número, Bairro" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Rua, Número, Bairro" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500 text-white" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Hora de Saída</label>
-                  <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500" required />
+                  <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500 text-white" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Valor Estimado (R$)</label>
@@ -225,7 +226,7 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Direcionar para Unidade</label>
-                 <select value={specificDriverId} onChange={(e) => setSpecificDriverId(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500">
+                 <select value={specificDriverId} onChange={(e) => setSpecificDriverId(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500 text-white">
                     <option value="">Fila Automática (Próximo Disponível)</option>
                     {state.drivers.map(d => (
                         <option key={d.id} value={d.id}>
@@ -235,7 +236,7 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                  </select>
               </div>
               <div className="flex flex-col gap-3 pt-2">
-                <button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-black py-3 px-4 rounded-md transition duration-300 shadow-lg">
+                <button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-black py-3 px-4 rounded-md transition duration-300 shadow-lg uppercase tracking-wider">
                   LANÇAR CORRIDA
                 </button>
                 <button 
@@ -252,25 +253,25 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
 
           {/* Gestão de Unidades */}
           <div className="bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-700">
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
                   <UsersIcon className="w-6 h-6 text-sky-400" />
                   Gerenciar Unidades
               </h2>
               <form onSubmit={handleAddDriver} className="space-y-3 mb-6">
                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Nova Unidade</p>
-                  <input type="text" value={newDriverName} onChange={(e) => setNewDriverName(e.target.value)} placeholder="Nome do Motorista" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm" required />
+                  <input type="text" value={newDriverName} onChange={(e) => setNewDriverName(e.target.value)} placeholder="Nome do Motorista" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm text-white" required />
                   <div className="grid grid-cols-2 gap-2">
-                      <input type="text" value={newDriverUnit} onChange={(e) => setNewDriverUnit(e.target.value)} placeholder="Unidade (Ex: 105)" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm" required />
-                      <input type="text" value={newDriverPassword} onChange={(e) => setNewDriverPassword(e.target.value)} placeholder="Senha Unidade" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm font-mono" required />
+                      <input type="text" value={newDriverUnit} onChange={(e) => setNewDriverUnit(e.target.value)} placeholder="Unidade (Ex: 105)" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm text-white" required />
+                      <input type="text" value={newDriverPassword} onChange={(e) => setNewDriverPassword(e.target.value)} placeholder="Senha Unidade" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm font-mono text-white" required />
                   </div>
-                   <input type="text" value={newDriverVehicle} onChange={(e) => setNewDriverVehicle(e.target.value)} placeholder="Veículo (Ex: Toyota Corolla)" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm" required />
+                   <input type="text" value={newDriverVehicle} onChange={(e) => setNewDriverVehicle(e.target.value)} placeholder="Veículo (Ex: Toyota Corolla)" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-sm text-white" required />
                   <button type="submit" className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 text-sm shadow-md">
                       Cadastrar Motorista
                   </button>
               </form>
 
               <h3 className="text-[10px] font-bold mb-3 text-slate-500 uppercase tracking-widest border-b border-slate-700 pb-1">Lista Geral de Unidades</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                   {state.drivers.sort((a,b) => a.position - b.position).map(driver => (
                       <div key={driver.id} className="flex items-center justify-between bg-slate-700/40 p-3 rounded-md border border-slate-600/50 hover:bg-slate-700/60 transition-colors">
                           <div className="flex items-center gap-3">
@@ -298,29 +299,48 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                         <LockIcon className="w-3.5 h-3.5 text-amber-400" />
                         SEGURANÇA DO PAINEL
                     </h3>
-                    <form onSubmit={handleChangePassword} className="space-y-3">
-                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Nova Senha Administrativa" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-xs" required />
-                        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirmar Senha" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-xs" required />
+                    <form onSubmit={handleChangePassword} className="space-y-3 mb-4">
+                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Nova Senha Administrativa" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-xs text-white" required />
+                        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirmar Senha" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-xs text-white" required />
                         {passwordStatus && <p className="text-[10px] text-emerald-400">{passwordStatus.message}</p>}
                         <button type="submit" className="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 rounded-md transition duration-300 text-[10px]">
                             ATUALIZAR SENHA MASTER
                         </button>
                     </form>
+                    
+                    <button 
+                        onClick={() => setShowBackup(!showBackup)}
+                        className="w-full text-center text-[9px] text-slate-500 hover:text-sky-400 uppercase font-black tracking-widest transition-colors mt-2"
+                    >
+                        {showBackup ? 'FECHAR BACKUP' : 'VER BACKUP DO BANCO'}
+                    </button>
+                    
+                    {showBackup && (
+                        <div className="mt-4 p-2 bg-black/40 rounded border border-slate-700">
+                            <p className="text-[9px] text-emerald-500 mb-2 font-mono">Dados salvos em JSON:</p>
+                            <textarea 
+                                readOnly 
+                                value={JSON.stringify(state, null, 2)}
+                                className="w-full h-32 bg-transparent text-[8px] text-slate-400 font-mono resize-none focus:outline-none custom-scrollbar"
+                            />
+                            <p className="text-[8px] text-slate-600 mt-2">Copie este código para um bloco de notas se quiser salvar uma cópia física das unidades cadastradas.</p>
+                        </div>
+                    )}
                 </div>
               )}
           </div>
         </div>
         
         <div className="lg:col-span-2 space-y-6">
-          {/* Monitoramento da Frota Disponível - CRITICAL: usa availableDrivers (filtrado) */}
-          <div className="bg-slate-800/40 p-6 rounded-xl border border-slate-700/50">
+          {/* Fila Online */}
+          <div className="bg-slate-800/40 p-6 rounded-xl border border-slate-700/50 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                <UsersIcon className="w-6 h-6 text-emerald-400" />
-                Frota Disponível (Fila Online)
+                <TrophyIcon className="w-6 h-6 text-emerald-400" />
+                Fila Online (Próximos Ganhos)
               </h2>
               <span className="text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full font-bold border border-emerald-500/20">
-                {availableDrivers.length} ATIVOS NO MOMENTO
+                {availableDrivers.length} UNIDADES ATIVAS
               </span>
             </div>
             
@@ -330,7 +350,7 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                   key={driver.id} 
                   className={`p-3 rounded-lg border flex flex-col items-center justify-center transition-all duration-300 group ${
                     idx === 0 
-                      ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
+                      ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.15)] scale-105' 
                       : 'bg-slate-700/30 border-slate-600/50 hover:border-slate-500'
                   }`}
                 >
@@ -341,16 +361,13 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   </div>
                   <span className="text-lg font-black text-white group-hover:scale-110 transition-transform">Un. {driver.unitNumber}</span>
-                  <span className="text-[9px] text-slate-500 truncate w-full text-center uppercase tracking-tighter mt-1">
+                  <span className="text-[9px] text-slate-500 truncate w-full text-center uppercase tracking-tighter mt-1 font-bold">
                     {driver.name.split(' ')[0]}
                   </span>
                 </div>
               ))}
               {availableDrivers.length === 0 && (
                 <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-700 rounded-xl bg-slate-800/20">
-                  <div className="bg-slate-700/50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <UserIcon className="w-6 h-6 text-slate-500" />
-                  </div>
                   <p className="text-slate-500 text-sm font-medium">Nenhuma unidade online no momento.</p>
                   <p className="text-[10px] text-slate-600 mt-1 uppercase tracking-widest">Aguardando motoristas iniciarem turno</p>
                 </div>
@@ -358,17 +375,17 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
             </div>
           </div>
 
-          <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 shadow-xl">
+          <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 shadow-2xl">
             <h2 className="text-2xl font-bold mb-6 text-white border-b border-slate-700 pb-2 flex items-center gap-3">
                 <CarIcon className="w-8 h-8 text-amber-400" />
-                Painel de Operações
+                Monitor de Operações
             </h2>
             
             <div className="space-y-10">
               <div>
                 <h3 className="text-sm font-black mb-4 text-purple-400 flex items-center gap-2 uppercase tracking-widest">
                     <AlarmClockIcon className="w-5 h-5"/>
-                    Próximos Agendamentos ({ridesByStatus(RideStatus.SCHEDULED).length})
+                    Agendamentos ({ridesByStatus(RideStatus.SCHEDULED).length})
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {ridesByStatus(RideStatus.SCHEDULED).map(ride => (
@@ -381,13 +398,13 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
               <div>
                 <h3 className="text-sm font-black mb-4 text-amber-400 flex items-center gap-2 uppercase tracking-widest">
                     <BellIcon className="w-5 h-5"/>
-                    Chamados Pendentes ({ridesByStatus(RideStatus.WAITING).length})
+                    Aguardando Aceite ({ridesByStatus(RideStatus.WAITING).length})
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {ridesByStatus(RideStatus.WAITING).map(ride => (
                     <RideCard key={ride.id} ride={ride} />
                   ))}
-                  {ridesByStatus(RideStatus.WAITING).length === 0 && <p className="text-slate-600 italic text-sm py-4">Nenhum chamado pendente de aceite.</p>}
+                  {ridesByStatus(RideStatus.WAITING).length === 0 && <p className="text-slate-600 italic text-sm py-4">Nenhum chamado pendente.</p>}
                 </div>
               </div>
 
@@ -400,18 +417,7 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                   {ridesByStatus(RideStatus.IN_PROGRESS).map(ride => (
                     <RideCard key={ride.id} ride={ride} />
                   ))}
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-slate-700/50">
-                <h3 className="text-sm font-black mb-4 text-emerald-500 flex items-center gap-2 uppercase tracking-widest">
-                    <CheckCircleIcon className="w-5 h-5"/>
-                    Finalizadas Recentemente
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-60 hover:opacity-100 transition-opacity">
-                  {ridesByStatus(RideStatus.COMPLETED).slice(0, 4).map(ride => (
-                    <RideCard key={ride.id} ride={ride} />
-                  ))}
+                  {ridesByStatus(RideStatus.IN_PROGRESS).length === 0 && <p className="text-slate-600 italic text-sm py-4">Nenhuma unidade em corrida.</p>}
                 </div>
               </div>
             </div>
