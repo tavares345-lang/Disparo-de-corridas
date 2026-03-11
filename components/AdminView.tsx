@@ -98,30 +98,27 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
         const now = new Date();
         state.rides.forEach(ride => {
             if (ride.status === RideStatus.SCHEDULED && ride.scheduledTime) {
-                const [hours, minutes] = ride.scheduledTime.split(':').map(Number);
-                const rideCreationDate = new Date(ride.id);
-                const potentialDispatchDate = new Date(ride.id);
-                potentialDispatchDate.setHours(hours, minutes, 0, 0);
-                if (potentialDispatchDate < rideCreationDate) {
-                    potentialDispatchDate.setDate(potentialDispatchDate.getDate() + 1);
-                }
-                if (now >= potentialDispatchDate) {
-                    dispatch({ type: 'DISPATCH_SCHEDULED_RIDE', payload: { rideId: ride.id } });
+                try {
+                    const [hours, minutes] = ride.scheduledTime.split(':').map(Number);
+                    const rideCreationDate = new Date(ride.id);
+                    const potentialDispatchDate = new Date(ride.id);
+                    if (isNaN(rideCreationDate.getTime())) return;
+                    
+                    potentialDispatchDate.setHours(hours, minutes, 0, 0);
+                    if (potentialDispatchDate < rideCreationDate) {
+                        potentialDispatchDate.setDate(potentialDispatchDate.getDate() + 1);
+                    }
+                    if (now >= potentialDispatchDate) {
+                        dispatch({ type: 'DISPATCH_SCHEDULED_RIDE', payload: { rideId: ride.id } });
+                    }
+                } catch (e) {
+                    console.error("Erro ao processar agendamento:", e);
                 }
             }
         });
     }, 10000);
     return () => clearInterval(interval);
   }, [state.rides, dispatch]);
-
-  // Efeito para verificar e disparar corridas agendadas periodicamente
-  useEffect(() => {
-    const interval = setInterval(() => {
-      dispatch({ type: 'DISPATCH_SCHEDULED_RIDE' });
-    }, 30000); // Verifica a cada 30 segundos
-
-    return () => clearInterval(interval);
-  }, [dispatch]);
 
   const handleSubmitRide = (e: React.FormEvent) => {
     e.preventDefault();
@@ -376,7 +373,15 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                             .map(r => (
                               <div key={r.id} className="text-[10px] bg-slate-800 p-2 rounded border border-slate-700">
                                 <p className="font-bold text-slate-200">{r.pickup} → {r.destination}</p>
-                                <p className="text-slate-500">{new Date(r.createdAt).toLocaleDateString()} {r.time} • R$ {r.fare.toFixed(2)} • {r.status}</p>
+                                <p className="text-slate-500">
+                                  {(() => {
+                                    try {
+                                      return new Date(r.createdAt).toLocaleDateString();
+                                    } catch (e) {
+                                      return '---';
+                                    }
+                                  })()} {r.time} • R$ {r.fare.toFixed(2)} • {r.status}
+                                </p>
                               </div>
                             ))
                           }

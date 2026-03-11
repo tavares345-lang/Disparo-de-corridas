@@ -229,7 +229,15 @@ const DriverView: React.FC<DriverViewProps> = ({ driver }) => {
                   <MapPinIcon className="w-4 h-4 mt-1 text-rose-400 shrink-0" />
                   <div className="flex flex-col min-w-0">
                     <span className="text-sm font-bold text-slate-100 truncate">{ride.destination}</span>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mt-0.5">{ride.time} • {new Date(ride.id).toLocaleDateString()}</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mt-0.5">
+                      {ride.time} • {(() => {
+                        try {
+                          return new Date(ride.id).toLocaleDateString();
+                        } catch (e) {
+                          return '---';
+                        }
+                      })()}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 ml-4 shrink-0 text-amber-400 font-black text-xl">

@@ -57,7 +57,7 @@ const RideCard: React.FC<RideCardProps> = ({ ride, children }) => {
     <div className="bg-slate-800 rounded-lg shadow-lg p-5 border border-slate-700">
       <div className="flex justify-between items-start mb-4 gap-2">
         <div className="flex-grow">
-            <p className="text-sm text-slate-400">ID: {ride.id.substring(0, 8)}</p>
+            <p className="text-sm text-slate-400">ID: {ride.id ? ride.id.substring(0, 8) : '---'}</p>
         </div>
         {getStatusContent()}
       </div>

@@ -9,6 +9,8 @@ interface LoginViewProps {
 
 const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
   const { state } = useAppState();
+  if (!state) return null;
+
   const [unitNumber, setUnitNumber] = useState('');
   const [driverPassword, setDriverPassword] = useState('');
   const [driverError, setDriverError] = useState('');
@@ -16,7 +18,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
   const [adminPassword, setAdminPassword] = useState('');
   const [adminError, setAdminError] = useState('');
 
-  const [view, setView] = useState<'driver' | 'admin' | 'super'>('driver');
+  const [view, setView] = useState<'driver' | 'admin'>('driver');
 
   const handleDriverLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,18 +41,15 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (view === 'admin') {
-        if (adminPassword === state.adminPassword) {
-            onLogin('admin');
-        } else {
-            setAdminError('Senha incorreta. Tente novamente.');
-        }
-    } else {
-        if (adminPassword === state.superAdminPassword) {
-            onLogin('superadmin');
-        } else {
-            setAdminError('Senha do Administrador Geral incorreta.');
-        }
+    try {
+      if (adminPassword === (state.superAdminPassword || 'Master123')) {
+        onLogin('superadmin');
+      } else {
+        setAdminError('Senha administrativa incorreta.');
+      }
+    } catch (err) {
+      setAdminError('Erro ao processar login. Tente novamente.');
+      console.error(err);
     }
   };
 
@@ -66,53 +65,51 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
         </div>
         
         <div className="bg-slate-800 rounded-lg shadow-lg p-8">
-          {view === 'driver' ? (
-            <>
-              <form onSubmit={handleDriverLogin} className="space-y-4">
-                <h2 className="text-2xl font-bold text-center text-white mb-6">Acesso Unidade</h2>
-                <div>
-                  <label htmlFor="unitNumber" className="block text-sm font-medium text-slate-300 mb-1">
-                    Número da Unidade
-                  </label>
-                  <input
-                    id="unitNumber"
-                    type="text"
-                    value={unitNumber}
-                    onChange={(e) => {
-                      setUnitNumber(e.target.value);
-                      setDriverError('');
-                    }}
-                    placeholder="Ex: 101"
-                    className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="driverPassword" className="block text-sm font-medium text-slate-300 mb-1">
-                    Senha da Unidade
-                  </label>
-                  <input
-                    id="driverPassword"
-                    type="password"
-                    value={driverPassword}
-                    onChange={(e) => {
-                      setDriverPassword(e.target.value);
-                      setDriverError('');
-                    }}
-                    placeholder="••••••"
-                    className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg"
-                    required
-                  />
-                </div>
-                {driverError && <p className="text-rose-400 text-sm mb-2 text-center">{driverError}</p>}
-                <button
-                  type="submit"
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2"
-                >
-                  <UserIcon className="w-5 h-5" />
-                  Acessar Painel
-                </button>
-              </form>
+          {view === 'driver' && (
+            <form onSubmit={handleDriverLogin} className="space-y-4">
+              <h2 className="text-2xl font-bold text-center text-white mb-6">Acesso Unidade</h2>
+              <div>
+                <label htmlFor="unitNumber" className="block text-sm font-medium text-slate-300 mb-1">
+                  Número da Unidade
+                </label>
+                <input
+                  id="unitNumber"
+                  type="text"
+                  value={unitNumber}
+                  onChange={(e) => {
+                    setUnitNumber(e.target.value);
+                    setDriverError('');
+                  }}
+                  placeholder="Ex: 101"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="driverPassword" className="block text-sm font-medium text-slate-300 mb-1">
+                  Senha da Unidade
+                </label>
+                <input
+                  id="driverPassword"
+                  type="password"
+                  value={driverPassword}
+                  onChange={(e) => {
+                    setDriverPassword(e.target.value);
+                    setDriverError('');
+                  }}
+                  placeholder="••••••"
+                  className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg text-white"
+                  required
+                />
+              </div>
+              {driverError && <p className="text-rose-400 text-sm mb-2 text-center">{driverError}</p>}
+              <button
+                type="submit"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2"
+              >
+                <UserIcon className="w-5 h-5" />
+                Acessar Painel
+              </button>
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
@@ -123,23 +120,24 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 gap-3">
-                <button
-                    onClick={() => setView('super')}
-                    className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 shadow-lg"
-                >
-                    <UsersIcon className="w-6 h-6" />
-                    Acesso Administrativo
-                </button>
-              </div>
-            </>
-          ) : (
-            <form onSubmit={handleAdminLogin}>
+              <button
+                  type="button"
+                  onClick={() => setView('admin')}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 shadow-lg"
+              >
+                  <UsersIcon className="w-6 h-6" />
+                  Acesso Administrativo
+              </button>
+            </form>
+          )}
+
+          {view === 'admin' && (
+            <form onSubmit={handleAdminLogin} className="space-y-4">
                 <h2 className="text-2xl font-bold text-center text-white mb-2">
-                    {view === 'admin' ? 'Administração' : 'Administrador Geral'}
+                    Administrador
                 </h2>
                 <p className="text-center text-slate-400 text-sm mb-6">
-                    {view === 'admin' ? 'Acesso operacional' : 'Controle total do sistema'}
+                    Controle total do sistema
                 </p>
                  <div className="mb-4">
                   <label htmlFor="adminPassword" className="block text-sm font-medium text-slate-300 mb-2">
@@ -154,7 +152,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                       setAdminError('');
                     }}
                     placeholder="••••••••"
-                    className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg"
+                    className="w-full bg-slate-700 border border-slate-600 rounded-md p-3 focus:ring-amber-500 focus:border-amber-500 text-center text-lg text-white"
                     required
                     autoFocus
                   />
@@ -162,7 +160,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 {adminError && <p className="text-rose-400 text-sm mb-4 text-center">{adminError}</p>}
                 <button
                   type="submit"
-                  className={`w-full ${view === 'admin' ? 'bg-sky-600 hover:bg-sky-700' : 'bg-sky-500 hover:bg-sky-600'} text-white font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 mb-4 shadow-lg`}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 mb-4 shadow-lg"
                 >
                   <LockIcon className="w-5 h-5" />
                   Entrar no Painel
@@ -180,6 +178,19 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
                 </button>
             </form>
           )}
+        </div>
+        <div className="mt-8 text-center">
+          <button 
+            onClick={() => {
+              if (window.confirm('Isso apagará todas as unidades e corridas. Deseja continuar?')) {
+                localStorage.clear();
+                window.location.reload();
+              }
+            }}
+            className="text-[10px] text-slate-600 hover:text-rose-400 transition-colors uppercase tracking-widest font-bold"
+          >
+            Resetar Sistema (Uso Técnico)
+          </button>
         </div>
       </div>
     </div>
