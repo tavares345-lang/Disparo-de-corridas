@@ -72,10 +72,9 @@ const DriverView: React.FC<DriverViewProps> = ({ driver }) => {
 
   const completedRides = state.rides
     .filter(r => r.assignedDriverId === driver.id && r.status === RideStatus.COMPLETED)
-    .sort((a, b) => b.id.localeCompare(a.id))
-    .slice(0, 5);
+    .sort((a, b) => b.id.localeCompare(a.id));
 
-  const completedRidesCount = state.rides.filter(r => r.assignedDriverId === driver.id && r.status === RideStatus.COMPLETED).length;
+  const completedRidesCount = completedRides.length;
 
   return (
     <div className="space-y-6">

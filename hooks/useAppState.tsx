@@ -5,15 +5,14 @@ import { Driver, Ride, RideStatus } from '../types';
 interface AppState {
   drivers: Driver[];
   rides: Ride[];
-  adminPassword: string;
   superAdminPassword: string;
   alertTimestamp?: number;
-  _isHydrated: boolean; // Flag crítica para controle de persistência
+  _isHydrated: boolean;
 }
 
 type Action =
   | { type: 'HYDRATE'; payload: Omit<AppState, '_isHydrated'> }
-  | { type: 'ADD_RIDE'; payload: Omit<Ride, 'id' | 'status'> & { specificDriverId?: number; scheduledTime?: string } }
+  | { type: 'ADD_RIDE'; payload: Omit<Ride, 'id' | 'status' | 'createdAt'> & { specificDriverId?: number; scheduledTime?: string } }
   | { type: 'ACCEPT_RIDE'; payload: { rideId: string; driverId: number } }
   | { type: 'DECLINE_RIDE'; payload: { rideId: string; driverId: number } }
   | { type: 'COMPLETE_RIDE'; payload: { rideId: string } }
@@ -22,7 +21,6 @@ type Action =
   | { type: 'REMOVE_DRIVER'; payload: { driverId: number } }
   | { type: 'TOGGLE_DRIVER_AVAILABILITY'; payload: { driverId: number } }
   | { type: 'DISPATCH_SCHEDULED_RIDE'; payload: { rideId: string } }
-  | { type: 'CHANGE_ADMIN_PASSWORD'; payload: { newPassword: string } }
   | { type: 'CHANGE_SUPER_ADMIN_PASSWORD'; payload: { newPassword: string } }
   | { type: 'SEND_ALERT' };
 
@@ -31,7 +29,6 @@ const COOPTAXI_STATE_KEY = 'cooptaxi_database_v3';
 const initialState: AppState = {
   drivers: [],
   rides: [],
-  adminPassword: 'Admin',
   superAdminPassword: 'Master123',
   _isHydrated: false
 };
@@ -54,15 +51,16 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'ADD_RIDE': {
       const { specificDriverId, scheduledTime, ...ridePayload } = action.payload;
       const newRideId = new Date().toISOString();
+      const createdAt = new Date().toISOString();
       if (scheduledTime) {
-        return { ...state, rides: [{ ...ridePayload, id: newRideId, status: RideStatus.SCHEDULED, scheduledTime }, ...state.rides] };
+        return { ...state, rides: [{ ...ridePayload, id: newRideId, status: RideStatus.SCHEDULED, scheduledTime, createdAt }, ...state.rides] };
       }
       const driverToOffer = specificDriverId
         ? state.drivers.find(d => d.id === specificDriverId)
         : state.drivers.filter(d => d.isAvailable).sort((a,b) => a.position - b.position)[0];
       return {
         ...state,
-        rides: [{ ...ridePayload, id: newRideId, status: RideStatus.WAITING, offeredToDriverId: driverToOffer?.id }, ...state.rides],
+        rides: [{ ...ridePayload, id: newRideId, status: RideStatus.WAITING, offeredToDriverId: driverToOffer?.id, createdAt }, ...state.rides],
         alertTimestamp: Date.now(),
       };
     }
@@ -103,8 +101,19 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, rides: state.rides.map(r => r.id === rideId ? { ...r, offeredToDriverId: nextAvailableDriverInQueue?.id } : r), drivers: updatedDrivers };
     }
 
-    case 'COMPLETE_RIDE':
-      return { ...state, rides: state.rides.map(ride => ride.id === action.payload.rideId ? { ...ride, status: RideStatus.COMPLETED } : ride) };
+    case 'COMPLETE_RIDE': {
+      const ride = state.rides.find(r => r.id === action.payload.rideId);
+      if (!ride || !ride.assignedDriverId) return state;
+      
+      return { 
+        ...state, 
+        rides: state.rides.map(r => r.id === action.payload.rideId ? { ...r, status: RideStatus.COMPLETED } : r),
+        drivers: state.drivers.map(d => d.id === ride.assignedDriverId ? {
+          ...d,
+          completedRidesIds: [...(d.completedRidesIds || []), ride.id]
+        } : d)
+      };
+    }
 
     case 'ADD_DRIVER': {
       const { name, unitNumber, vehicleModel, password } = action.payload;
@@ -129,8 +138,24 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'TOGGLE_DRIVER_AVAILABILITY':
       return { ...state, drivers: state.drivers.map(d => d.id === action.payload.driverId ? { ...d, isAvailable: !d.isAvailable } : d) };
 
-    case 'CHANGE_ADMIN_PASSWORD':
-      return { ...state, adminPassword: action.payload.newPassword };
+    case 'DISPATCH_SCHEDULED_RIDE': {
+      const ride = state.rides.find(r => r.id === action.payload.rideId);
+      if (!ride || ride.status !== RideStatus.SCHEDULED) return state;
+      
+      const driverToOffer = state.drivers
+        .filter(d => d.isAvailable)
+        .sort((a, b) => a.position - b.position)[0];
+        
+      return {
+        ...state,
+        rides: state.rides.map(r => r.id === action.payload.rideId ? { 
+          ...r, 
+          status: RideStatus.WAITING, 
+          offeredToDriverId: driverToOffer?.id 
+        } : r),
+        alertTimestamp: Date.now()
+      };
+    }
 
     case 'CHANGE_SUPER_ADMIN_PASSWORD':
       return { ...state, superAdminPassword: action.payload.newPassword };

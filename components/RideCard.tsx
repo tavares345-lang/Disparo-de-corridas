@@ -88,6 +88,12 @@ const RideCard: React.FC<RideCardProps> = ({ ride, children }) => {
              <span>{ride.fare.toFixed(2).replace('.', ',')}</span>
            </div>
         </div>
+        {ride.observation && (
+          <div className="mt-3 p-2 bg-slate-700/50 rounded border border-slate-600/50">
+            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1">Observações</p>
+            <p className="text-xs text-slate-300 italic">{ride.observation}</p>
+          </div>
+        )}
       </div>
       {children}
     </div>

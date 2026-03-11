@@ -40,7 +40,7 @@ const AppContent: React.FC = () => {
         onLogout={() => setCurrentUser(null)}
       />
       <main className="flex-grow container mx-auto p-4 md:p-6">
-        {(currentUser === 'admin' || currentUser === 'superadmin') ? (
+        {currentUser === 'superadmin' ? (
           <AdminView accessLevel={currentUser as any} />
         ) : (
           loggedInDriver && <DriverView driver={loggedInDriver} />

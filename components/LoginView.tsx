@@ -125,17 +125,11 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
               
               <div className="grid grid-cols-1 gap-3">
                 <button
-                    onClick={() => setView('admin')}
-                    className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-md transition duration-300"
-                >
-                    Operador Administrativo
-                </button>
-                <button
                     onClick={() => setView('super')}
-                    className="w-full bg-slate-700 hover:bg-sky-600/20 text-sky-400 font-bold py-3 px-4 rounded-md border border-sky-600/30 transition duration-300 flex items-center justify-center gap-2"
+                    className="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-4 rounded-md transition duration-300 flex items-center justify-center gap-2 shadow-lg"
                 >
-                    <UsersIcon className="w-5 h-5" />
-                    Administrador Geral
+                    <UsersIcon className="w-6 h-6" />
+                    Acesso Administrativo
                 </button>
               </div>
             </>

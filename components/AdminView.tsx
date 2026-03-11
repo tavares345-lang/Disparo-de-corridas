@@ -76,6 +76,7 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
   const [fare, setFare] = useState('');
   const [specificDriverId, setSpecificDriverId] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
+  const [observation, setObservation] = useState('');
 
   const [newDriverName, setNewDriverName] = useState('');
   const [newDriverUnit, setNewDriverUnit] = useState('');
@@ -89,6 +90,8 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
   const [passwordStatus, setPasswordStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   const [showBackup, setShowBackup] = useState(false);
+  const [showReports, setShowReports] = useState(false);
+  const [reportFilter, setReportFilter] = useState({ driverId: '', status: '', date: '' });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -111,6 +114,15 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
     return () => clearInterval(interval);
   }, [state.rides, dispatch]);
 
+  // Efeito para verificar e disparar corridas agendadas periodicamente
+  useEffect(() => {
+    const interval = setInterval(() => {
+      dispatch({ type: 'DISPATCH_SCHEDULED_RIDE' });
+    }, 30000); // Verifica a cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [dispatch]);
+
   const handleSubmitRide = (e: React.FormEvent) => {
     e.preventDefault();
     if (pickup && destination && time && fare) {
@@ -123,6 +135,7 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
           fare: parseFloat(fare),
           specificDriverId: specificDriverId ? parseInt(specificDriverId, 10) : undefined,
           scheduledTime: scheduledTime || undefined,
+          observation: observation || undefined,
         },
       });
       setPickup('');
@@ -131,6 +144,7 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
       setFare('');
       setSpecificDriverId('');
       setScheduledTime('');
+      setObservation('');
     }
   };
 
@@ -174,8 +188,8 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
       setPasswordStatus({ type: 'error', message: 'As senhas não coincidem.' });
       return;
     }
-    dispatch({ type: 'CHANGE_ADMIN_PASSWORD', payload: { newPassword } });
-    setPasswordStatus({ type: 'success', message: 'Senha administrativa atualizada!' });
+    dispatch({ type: 'CHANGE_SUPER_ADMIN_PASSWORD', payload: { newPassword } });
+    setPasswordStatus({ type: 'success', message: 'Senha master atualizada!' });
     setNewPassword('');
     setConfirmPassword('');
     setTimeout(() => setPasswordStatus(null), 3000);
@@ -223,6 +237,15 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                   <label className="block text-sm font-medium text-slate-300 mb-1">Valor Estimado (R$)</label>
                   <input type="number" value={fare} onChange={(e) => setFare(e.target.value)} step="0.01" placeholder="0,00" className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500 font-bold text-amber-400" required />
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Horário de Disparo Automático (Opcional)</label>
+                <input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500 text-white" />
+                <p className="text-[10px] text-slate-500 mt-1 italic">Se preenchido, a corrida será enviada para a fila apenas neste horário.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Observações</label>
+                <textarea value={observation} onChange={(e) => setObservation(e.target.value)} placeholder="Ex: Passageiro com mala, troco para 50..." className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500 text-white text-sm h-20 resize-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Direcionar para Unidade</label>
@@ -307,6 +330,59 @@ const AdminView: React.FC<AdminViewProps> = ({ accessLevel }) => {
                             ATUALIZAR SENHA MASTER
                         </button>
                     </form>
+                    
+                    <button 
+                        onClick={() => setShowReports(!showReports)}
+                        className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 text-xs shadow-md mb-3"
+                    >
+                        {showReports ? 'FECHAR RELATÓRIOS' : 'GERAR RELATÓRIOS'}
+                    </button>
+
+                    {showReports && (
+                      <div className="mt-4 p-4 bg-slate-900/50 rounded-lg border border-slate-700 space-y-4">
+                        <h4 className="text-xs font-bold text-sky-400 uppercase tracking-widest">Filtros de Relatório</h4>
+                        <div className="space-y-2">
+                          <select 
+                            value={reportFilter.driverId} 
+                            onChange={(e) => setReportFilter({...reportFilter, driverId: e.target.value})}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-xs text-white"
+                          >
+                            <option value="">Todas as Unidades</option>
+                            {state.drivers.map(d => <option key={d.id} value={d.id}>Un. {d.unitNumber} - {d.name}</option>)}
+                          </select>
+                          <select 
+                            value={reportFilter.status} 
+                            onChange={(e) => setReportFilter({...reportFilter, status: e.target.value})}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-xs text-white"
+                          >
+                            <option value="">Todos os Status</option>
+                            {Object.values(RideStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                          <input 
+                            type="date" 
+                            value={reportFilter.date} 
+                            onChange={(e) => setReportFilter({...reportFilter, date: e.target.value})}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-md p-2 text-xs text-white"
+                          />
+                        </div>
+                        <div className="max-h-64 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                          {state.rides
+                            .filter(r => {
+                              const matchDriver = !reportFilter.driverId || r.assignedDriverId === parseInt(reportFilter.driverId);
+                              const matchStatus = !reportFilter.status || r.status === reportFilter.status;
+                              const matchDate = !reportFilter.date || r.createdAt.startsWith(reportFilter.date);
+                              return matchDriver && matchStatus && matchDate;
+                            })
+                            .map(r => (
+                              <div key={r.id} className="text-[10px] bg-slate-800 p-2 rounded border border-slate-700">
+                                <p className="font-bold text-slate-200">{r.pickup} → {r.destination}</p>
+                                <p className="text-slate-500">{new Date(r.createdAt).toLocaleDateString()} {r.time} • R$ {r.fare.toFixed(2)} • {r.status}</p>
+                              </div>
+                            ))
+                          }
+                        </div>
+                      </div>
+                    )}
                     
                     <button 
                         onClick={() => setShowBackup(!showBackup)}

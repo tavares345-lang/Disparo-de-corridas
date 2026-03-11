@@ -14,6 +14,7 @@ export interface Driver {
   position: number;
   isAvailable: boolean;
   password?: string;
+  completedRidesIds?: string[];
 }
 
 export interface Ride {
@@ -26,4 +27,6 @@ export interface Ride {
   assignedDriverId?: number;
   offeredToDriverId?: number;
   scheduledTime?: string;
+  observation?: string;
+  createdAt: string;
 }

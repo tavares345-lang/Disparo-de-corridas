@@ -12,10 +12,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ currentUser, loggedInDriver, onLogout }) => {
   const getDisplayName = () => {
     if (currentUser === 'superadmin') {
-      return 'Administrador Geral';
-    }
-    if (currentUser === 'admin') {
-      return 'Painel Operacional';
+      return 'Administrador';
     }
     if (loggedInDriver) {
       return `Olá, ${loggedInDriver.name}`;
