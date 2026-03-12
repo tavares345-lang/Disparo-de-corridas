@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "Driver": {
+      "title": "Driver",
+      "description": "A driver in the cooperative",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "unitNumber": { "type": "string" },
+        "vehicleModel": { "type": "string" },
+        "position": { "type": "integer" },
+        "isAvailable": { "type": "boolean" },
+        "password": { "type": "string" },
+        "completedRidesIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["id", "name", "unitNumber", "vehicleModel", "position", "isAvailable"]
+    },
+    "Ride": {
+      "title": "Ride",
+      "description": "A ride request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "pickup": { "type": "string" },
+        "destination": { "type": "string" },
+        "time": { "type": "string" },
+        "fare": { "type": "number" },
+        "status": { "type": "string" },
+        "assignedDriverId": { "type": "integer" },
+        "offeredToDriverId": { "type": "integer" },
+        "scheduledTime": { "type": "string" },
+        "observation": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "pickup", "destination", "time", "fare", "status", "createdAt"]
+    },
+    "Config": {
+      "title": "Config",
+      "description": "Global application configuration",
+      "type": "object",
+      "properties": {
+        "superAdminPassword": { "type": "string" },
+        "alertTimestamp": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/drivers/{driverId}": {
+      "schema": "Driver",
+      "description": "Collection of drivers"
+    },
+    "/rides/{rideId}": {
+      "schema": "Ride",
+      "description": "Collection of rides"
+    },
+    "/config/main": {
+      "schema": "Config",
+      "description": "Global configuration document"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // AVISO: Estas regras permitem acesso total sem login. 
+    // Use apenas para resolver o problema inicial de configuração.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
